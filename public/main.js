@@ -300,7 +300,7 @@ function displayResults(data) {
         } else if (halalStatus.toLowerCase().includes('tidak halal') || halalStatus.toLowerCase().includes('haram')) {
             halalStatusElement.classList.add('text-red-600');
         } else {
-            halalStatusElement.classList.add('text-yellow-600');
+            halalStatusElement.classList.add('text-green-600');
         }
         
         // Contains pork status
