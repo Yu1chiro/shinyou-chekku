@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Helper function untuk OCR
 async function performOCR(base64ImageWithPrefix, apiKey) {
@@ -136,8 +136,9 @@ Tugas Anda:
 
 // Route untuk halaman utama
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
 
 // Route untuk upload dan analisis gambar
 app.post('/analyze-product', async (req, res) => {
