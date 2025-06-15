@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信用チェック</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Hero Section -->
+    <section class="hero-gradient text-white">
+        <div class="container mx-auto px-4 py-16 md:py-24">
+            <div class="max-w-4xl mx-auto text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-6">
+                    <i class="fas fa-search-plus mr-3"></i>
+                信用チェック
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 opacity-90">
+                   AIとOCRで簡単・正確にハラールチェック
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="guide-btn" class="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all">
+                        <i class="fas fa-book mr-2"></i>ガイド
+                    </button>
+                    <a href="#upload-section" class="bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-800 transition-all">
+                        <i class="fas fa-camera mr-2"></i>やって見る！
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Example Cards Section -->
+    <section class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">
+                <i class="fas fa-images text-blue-600 mr-2"></i>
+                写真サンプル
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Example Card 1 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 card-hover">
+                    <img src="/img/spageti.jpeg" alt="Contoh Produk 1" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">TAPPRINO</h3>
+                        <p class="text-gray-600 mb-4">マ・マー TAPPRINO（タップリーノ）ボロネーゼ 1人前・120g 1個 日清製粉ウェルナ レンジ対応 パスタソース</p>
+                        <button class="demo-btn w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors" data-example="1">
+                            <i class="fas fa-download mr-2"></i>ダウンロード
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Example Card 2 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 card-hover">
+                    <img src="/img/kare.jpeg" alt="Contoh Produk 2" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">カレ(Kare) - Kari cihuy</h3>
+                        <p class="text-gray-600 mb-4">ハチ食品 メガ盛りカレー（大辛） 300g 3個</p>
+                        <button class="demo-btn w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors" data-example="2">
+                            <i class="fas fa-download mr-2"></i>ダウンロード
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Example Card 3 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 card-hover">
+                    <img src="/img/ocha.jpeg" alt="Contoh Produk 3" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">お茶 (Ocha) - Teh Green</h3>
+                        <p class="text-gray-600 mb-4">【水出し可】宇治の露製茶　伊右衛門　抹茶入りインスタント緑茶 大容量　1箱（120本入）</p>
+                        <button class="demo-btn w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors" data-example="3">
+                            <i class="fas fa-download mr-2"></i>ダウンロード
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-12" id="upload-section">
+        <!-- Upload Section -->
+        <div class="max-w-4xl mx-auto mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    <i class="fas fa-upload text-blue-600 mr-2"></i>
+                   写真アップロード
+                </h2>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors duration-300" id="upload-area">
+                    <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
+                    <p class="text-xl text-gray-600 mb-2">ドラッグアンドドロップ</p>
+                    <button class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300" id="upload-btn">
+                        <i class="fas fa-plus mr-2"></i>写真を選びなさい
+                    </button>
+                    <input type="file" id="file-input" accept="image/*" class="hidden">
+                    <p class="text-sm text-gray-500 mt-2">写真リミット (Max 10MB)</p>
+                </div>
+                
+                <!-- Preview Image -->
+                <div id="image-preview" class="mt-6 hidden">
+                    <div class="flex justify-center mb-4">
+                        <img id="preview-img" class="max-w-full h-auto max-h-96 rounded-lg shadow-md" alt="Preview">
+                    </div>
+                    <div class="text-center">
+                        <button id="analyze-btn" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                            <i class="fas fa-search mr-2"></i>する
+                        </button>
+                        <button id="cancel-btn" class="ml-4 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-times mr-2"></i>キャンセル
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden max-w-4xl mx-auto mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <div class="flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">お待ちください.....</h3>
+                    <p class="text-gray-500 text-center max-w-md">
+                        情報が後１分ぐらい出てしまいます。
+                    </p>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-6">
+                        <div class="bg-blue-600 h-2.5 rounded-full animate-pulse" style="width: 70%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="hidden max-w-6xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+                <!-- Result Header -->
+                <div class="bg-gray-50 px-6 py-4 border-b">
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+                       原材料情報
+                    </h2>
+                </div>
+                
+                <!-- Product Info Card -->
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+                                <i class="fas fa-box-open text-blue-500 mr-2"></i>
+                                ポイント
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500">名前</label>
+                                    <p id="product-name" class="text-lg font-semibold text-gray-800 mt-1"></p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500">値段</label>
+                                    <div class="flex items-baseline mt-1 space-x-3">
+                                        <span id="price-yen" class="text-2xl font-bold text-blue-600"></span>
+                                        <span id="price-idr" class="text-lg font-semibold text-green-600"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500">ステータス</label>
+                                    <p id="halal-status" class="text-lg font-semibold mt-1"></p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500">豚肉の入ってる情報</label>
+                                    <p id="contains-pork" class="text-lg font-semibold mt-1"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ingredients Card -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+                <div class="bg-gray-50 px-6 py-4 border-b">
+                    <h3 class="text-xl font-semibold text-gray-700 flex items-center">
+                        <i class="fas fa-list-ol text-orange-500 mr-2"></i>
+                        原材料
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div id="ingredients" class="bg-gray-50 rounded-lg p-4 text-gray-700 leading-relaxed whitespace-pre-line"></div>
+                </div>
+            </div>
+
+            <!-- Analysis Card -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+                <div class="bg-gray-50 px-6 py-4 border-b">
+                    <h3 class="text-xl font-semibold text-gray-700 flex items-center">
+                        <i class="fas fa-flask text-purple-500 mr-2"></i>
+                        必要な事
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div id="pork-analysis" class="text-gray-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Additional Info Card -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+                <div class="bg-gray-50 px-6 py-4 border-b">
+                    <h3 class="text-xl font-semibold text-gray-700 flex items-center">
+                        <i class="fas fa-info-circle text-teal-500 mr-2"></i>
+                        他の情報
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div id="additional-info" class="text-gray-700 leading-relaxed mb-4"></div>
+                    <div class="p-3 bg-blue-50 rounded-lg flex items-start">
+                        <i class="fas fa-link text-blue-500 mt-1 mr-3"></i>
+                        <div>
+                            <p class="text-sm text-blue-700 font-medium">検索</p>
+                            <p id="source" class="text-blue-600"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OCR Text (Collapsible) -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <button id="toggle-ocr" class="w-full text-left bg-gray-50 px-6 py-4 border-b hover:bg-gray-100 transition-colors">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-semibold text-gray-700 flex items-center">
+                            <i class="fas fa-eye text-gray-500 mr-2"></i>
+                            (OCR) チェック
+                        </h3>
+                        <i class="fas fa-chevron-down transition-transform duration-300" id="ocr-arrow"></i>
+                    </div>
+                </button>
+                <div id="ocr-content" class="hidden px-6 py-4">
+                    <div class="p-4 bg-gray-50 rounded-lg text-sm text-gray-600 font-mono whitespace-pre-wrap max-h-96 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Display -->
+        <div id="error" class="hidden max-w-4xl mx-auto mb-12">
+            <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-red-800">Terjadi Kesalahan</h3>
+                        <div class="mt-2 text-red-700">
+                            <p id="error-message"></p>
+                        </div>
+                        <div class="mt-4">
+                            <button id="retry-btn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
+                                <i class="fas fa-redo mr-2"></i>Coba Lagi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="mb-4 md:mb-0">
+                        <h3 class="text-xl font-bold flex items-center">
+                            <i class="fas fa-camera mr-2"></i>
+                      信用チェック
+                        </h3>
+                    </div>
+                </div>
+                <div class="border-t border-gray-700 mt-6 pt-6 text-center text-gray-400 text-sm">
+                    <p>© 2025 Yuichiro. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Guide Modal -->
+    <div id="guide-modal" class="modal fixed inset-0 z-50 overflow-y-auto hidden">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-question text-blue-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                お使いの説明書
+                            </h3>
+                            <div class="mt-4">
+                                <div class="space-y-6">
+                                    <!-- Step 1 -->
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 bg-blue-100 rounded-full p-2">
+                                            <span class="text-blue-600 font-bold">1</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="text-lg font-medium text-gray-800">写真を撮る</h4>
+                                            <p class="mt-1 text-gray-600">
+                                               まず、製品の名前が写真を撮って特にブランドとかまた(原材料).　はっきり写真を撮るように大事なのです。
+                                            </p>
+                                            <div class="mt-3 flex justify-center">
+                                                <img src="/guides/1.png" alt="Contoh Foto" class="rounded-lg border border-gray-200 max-w-full h-auto">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Step 2 -->
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 bg-blue-100 rounded-full p-2">
+                                            <span class="text-blue-600 font-bold">2</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="text-lg font-medium text-gray-800">アップデート</h4>
+                                            <p class="mt-1 text-gray-600">
+                                               写真を選んでアップロードして、するとボタンを押してください
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    
+                                    <!-- Step 4 -->
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 bg-blue-100 rounded-full p-2">
+                                            <span class="text-blue-600 font-bold">3</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="text-lg font-medium text-gray-800">製品の情報</h4>
+                                            <p class="mt-1 text-gray-600">
+                                               情報はこんなふにになりました。
+                                            </p>
+                                            <div class="mt-3 flex justify-center">
+                                                <img src="/guides/2.png" alt="Contoh Hasil" class="rounded-lg border border-gray-200 max-w-full h-auto">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="close-guide" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Tutup Panduan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
