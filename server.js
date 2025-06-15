@@ -225,12 +225,8 @@ app.post('/test-ocr', async (req, res) => {
 // Route untuk testing
 app.get('/test', (req, res) => {
     res.json({
-        message: 'Server berjalan dengan baik',
-        environment: {
-            gemini_api: process.env.GEMINI_API_KEY ? 'Configured' : 'Not configured',
-            ocr_api: process.env.OCR_API_KEY ? 'Configured' : 'Not configured'
-        }
-    });
+        message: 'server as running',
+         });
 });
 
 app.listen(PORT, () => {
