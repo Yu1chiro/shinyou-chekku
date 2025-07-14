@@ -19,12 +19,11 @@ const cooldownStore = new Map();
 
 // Konfigurasi rate limiting
 const RATE_LIMIT_CONFIG = {
-    maxRequests: 3,        //max 3 request         
-    windowMs: 30 * 1000,      //15 detik       
-    cooldownMs: 30* 1000,          //10 detik cooldown  
-    blockDurationMs: 120 * 1000       
+    maxRequests: 5,        //max 5 request         
+    windowMs: 60 * 1000,      //60 detik       
+    cooldownMs: 15 * 1000,          //15 detik cooldown  
+    blockDurationMs: 60 * 1000       
 };
-
 
 // Whitelist IP yang diizinkan (opsional - untuk keamanan ekstra)
 const ALLOWED_IPS = [
@@ -146,7 +145,7 @@ function rateLimitMiddleware(req, res, next) {
 function setCooldown(clientIP) {
     const cooldownEnd = Date.now() + RATE_LIMIT_CONFIG.cooldownMs;
     cooldownStore.set(clientIP, cooldownEnd);
-    console.log(`Cooldown 30 detik diset untuk IP: ${clientIP}`);
+    console.log(`Cooldown 15 detik diset untuk IP: ${clientIP}`);
     
     // Auto cleanup cooldown setelah expired
     setTimeout(() => {
@@ -155,48 +154,85 @@ function setCooldown(clientIP) {
     }, RATE_LIMIT_CONFIG.cooldownMs);
 }
 
-// OCR function dengan error handling yang lebih baik
+// Fungsi OCR menggunakan Gemini API dengan base64
 async function performOCR(base64ImageWithPrefix, apiKey) {
     try {
-        // Pastikan format base64 lengkap dengan prefix
-        let fullBase64Image = base64ImageWithPrefix;
+        // Ekstrak base64 data tanpa prefix
+        let base64Data = base64ImageWithPrefix;
+        let mimeType = 'image/jpeg'; // default
         
-        // Jika tidak ada prefix, tambahkan default
-        if (!base64ImageWithPrefix.startsWith('data:')) {
-            fullBase64Image = `data:image/jpeg;base64,${base64ImageWithPrefix}`;
+        if (base64ImageWithPrefix.startsWith('data:')) {
+            const matches = base64ImageWithPrefix.match(/^data:([^;]+);base64,(.+)$/);
+            if (matches) {
+                mimeType = matches[1];
+                base64Data = matches[2];
+            }
         }
 
-        console.log('Sending OCR request with image format:', fullBase64Image.substring(0, 50) + '...');
+        console.log('Sending OCR request to Gemini API...', mimeType);
 
-        const formData = new URLSearchParams();
-        formData.append('apikey', apiKey);
-        formData.append('base64Image', fullBase64Image);
-        formData.append('language', 'jpn');
-        formData.append('isOverlayRequired', 'false');
-        formData.append('detectOrientation', 'true');
-        formData.append('scale', 'true');
-        formData.append('filetype', 'auto');
+        const requestBody = {
+            contents: [{
+                parts: [{
+                    text: "Ekstrak semua teks dari gambar ini dengan akurat. Fokus pada teks Jepang dan berikan hasil yang lengkap dan terstruktur. Jangan tambahkan penjelasan, hanya berikan teks yang terekstrak."
+                }, {
+                    inline_data: {
+                        mime_type: mimeType,
+                        data: base64Data
+                    }
+                }]
+            }],
+            generationConfig: {
+                temperature: 0.1,
+                maxOutputTokens: 2048
+            }
+        };
 
-        const response = await axios.post('https://api.ocr.space/parse/image', formData, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            timeout: 30000 // 30 second timeout
-        });
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            requestBody,
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000 // 30 second timeout
+            }
+        );
 
-        console.log('OCR Response received');
+        console.log('Gemini OCR Response received');
 
-        if (response.data.IsErroredOnProcessing) {
-            throw new Error(response.data.ErrorMessage || response.data.ErrorDetails || 'OCR processing failed');
+        if (!response.data.candidates || response.data.candidates.length === 0) {
+            throw new Error('No response from Gemini API');
         }
 
-        if (!response.data.ParsedResults || response.data.ParsedResults.length === 0) {
-            throw new Error('No text found in image');
+        const candidate = response.data.candidates[0];
+        
+        // Check if content was blocked
+        if (candidate.finishReason === 'SAFETY') {
+            throw new Error('Content blocked by safety filters');
+        }
+        
+        if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+            throw new Error('No content in Gemini response');
         }
 
-        return response.data.ParsedResults[0].ParsedText;
+        const extractedText = candidate.content.parts[0].text;
+
+        if (!extractedText || extractedText.trim().length === 0) {
+            throw new Error('No text extracted from image');
+        }
+
+        return extractedText.trim();
+
     } catch (error) {
-        console.error('OCR Error Details:', error.response?.data || error.message);
+        console.error('Gemini OCR Error Details:', error.response?.data || error.message);
+        
+        // Handle specific Gemini API errors
+        if (error.response?.data?.error) {
+            const geminiError = error.response.data.error;
+            throw new Error(`Gemini API Error: ${geminiError.message || geminiError.code || 'Unknown error'}`);
+        }
+        
         throw new Error(`OCR Error: ${error.message}`);
     }
 }
@@ -206,9 +242,11 @@ app.post('/analyze-product', rateLimitMiddleware, async (req, res) => {
     const clientIP = getClientIP(req);
     
     try {
+        console.log(`[${clientIP}] Starting analyze-product request`);
         const { image } = req.body;
         
         if (!image) {
+            console.log(`[${clientIP}] Missing image in request`);
             return res.status(400).json({
                 success: false,
                 error: 'Gambar tidak ditemukan'
@@ -217,6 +255,7 @@ app.post('/analyze-product', rateLimitMiddleware, async (req, res) => {
 
         // Validasi format base64
         if (!image.startsWith('data:image/')) {
+            console.log(`[${clientIP}] Invalid image format`);
             return res.status(400).json({
                 success: false,
                 error: 'Format gambar tidak valid. Pastikan gambar dalam format base64 yang benar.'
@@ -225,25 +264,30 @@ app.post('/analyze-product', rateLimitMiddleware, async (req, res) => {
 
         // Validasi ukuran gambar (opsional, untuk mencegah abuse)
         const imageSizeKB = (image.length * 0.75) / 1024; // Estimasi ukuran dalam KB
-        if (imageSizeKB > 5000) { // Maksimal 5MB
+        if (imageSizeKB > 10000) { // Maksimal 10MB
+            console.log(`[${clientIP}] Image too large: ${imageSizeKB}KB`);
             return res.status(400).json({
                 success: false,
-                error: 'Ukuran gambar terlalu besar. Maksimal 5MB.'
+                error: 'Ukuran gambar terlalu besar. Maksimal 10MB.'
             });
         }
 
-        console.log(`Memulai OCR untuk IP: ${clientIP}`);
+        console.log(`[${clientIP}] Starting OCR, image size: ${imageSizeKB.toFixed(2)}KB`);
 
-        // Perform OCR dengan image lengkap (termasuk prefix)
-        const ocrText = await performOCR(image, process.env.OCR_API_KEY);
-        console.log('OCR selesai, text length:', ocrText.length);
+        // Perform OCR dengan Gemini API
+        const ocrText = await performOCR(image, process.env.GEMINI_API_KEY);
+        console.log(`[${clientIP}] OCR completed, text length: ${ocrText.length}`);
 
         if (!ocrText || ocrText.trim().length === 0) {
             throw new Error('Tidak ada teks yang dapat diekstrak dari gambar');
         }
 
+        console.log(`[${clientIP}] Starting product analysis`);
+        
         // Analyze with Gemini
         const analysis = await analyzeProductWithGemini(ocrText, process.env.GEMINI_API_KEY);
+        
+        console.log(`[${clientIP}] Analysis completed successfully`);
 
         // Set cooldown setelah OCR berhasil
         setCooldown(clientIP);
@@ -254,20 +298,22 @@ app.post('/analyze-product', rateLimitMiddleware, async (req, res) => {
                 ocr_text: ocrText,
                 analysis: analysis
             },
-            message: 'Analisis berhasil. Cooldown 30 detik dimulai.'
+            message: 'Analisis berhasil. Cooldown 15 detik dimulai.'
         });
 
     } catch (error) {
-        console.error('Error untuk IP', clientIP, ':', error.message);
+        console.error(`[${clientIP}] Error in analyze-product:`, error.message);
+        console.error(`[${clientIP}] Error stack:`, error.stack);
         
         // Set cooldown juga untuk error OCR (mencegah spam error)
-        if (error.message.includes('OCR Error')) {
+        if (error.message.includes('OCR Error') || error.message.includes('Gemini API Error')) {
             setCooldown(clientIP);
         }
         
         res.status(500).json({
             success: false,
-            error: error.message
+            error: error.message,
+            timestamp: new Date().toISOString()
         });
     }
 });
@@ -367,18 +413,23 @@ Tugas Anda:
 `;
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 contents: [{
                     parts: [{
                         text: prompt
                     }]
-                }]
+                }],
+                generationConfig: {
+                    temperature: 0.1,
+                    maxOutputTokens: 2048
+                }
             },
             {
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 30000
             }
         );
 
@@ -401,11 +452,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-
-// Route untuk upload dan analisis gambar
-
-// Route untuk testing OCR
-app.post('/test-ocr', async (req, res) => {
+// Route untuk testing OCR dengan Gemini
+app.post('/test-ocr', rateLimitMiddleware, async (req, res) => {
+    const clientIP = getClientIP(req);
+    
     try {
         const { image } = req.body;
         
@@ -416,19 +466,35 @@ app.post('/test-ocr', async (req, res) => {
             });
         }
 
+        if (!image.startsWith('data:image/')) {
+            return res.status(400).json({
+                success: false,
+                error: 'Format gambar tidak valid. Pastikan gambar dalam format base64 yang benar.'
+            });
+        }
+
+        console.log(`Memulai test OCR untuk IP: ${clientIP}`);
         
-        const ocrText = await performOCR(image, process.env.OCR_API_KEY);
+        const ocrText = await performOCR(image, process.env.GEMINI_API_KEY);
+        
+        // Set cooldown setelah OCR berhasil
+        setCooldown(clientIP);
         
         res.json({
             success: true,
             data: {
                 ocr_text: ocrText,
                 text_length: ocrText.length
-            }
+            },
+            message: 'Test OCR berhasil. Cooldown 15 detik dimulai.'
         });
 
     } catch (error) {
         console.error('OCR Test Error:', error.message);
+        
+        // Set cooldown juga untuk error OCR
+        setCooldown(clientIP);
+        
         res.status(500).json({
             success: false,
             error: error.message
